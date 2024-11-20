@@ -1,0 +1,75 @@
+import random
+
+# Define the fitness function
+def fitness_function(x):
+    return x ** 2
+
+# Generate the initial population
+def generate_population(size, lower_bound, upper_bound):
+    return [random.uniform(lower_bound, upper_bound) for _ in range(size)]
+
+# Select parents using tournament selection
+def select_parents(population, fitness_values):
+    tournament_size = 3
+    selected = random.sample(list(zip(population, fitness_values)), tournament_size)
+    return max(selected, key=lambda x: x[1])[0]
+
+# Perform crossover between two parents
+def crossover(parent1, parent2, crossover_rate=0.8):
+    if random.random() < crossover_rate:
+        point = random.uniform(0, 1)
+        return parent1 * point + parent2 * (1 - point)
+    return parent1
+
+# Perform mutation on an individual
+def mutate(individual, mutation_rate, lower_bound, upper_bound):
+    if random.random() < mutation_rate:
+        return random.uniform(lower_bound, upper_bound)
+    return individual
+
+# Genetic Algorithm
+def genetic_algorithm(
+    population_size=20,
+    generations=50,
+    lower_bound=-10,
+    upper_bound=10,
+    crossover_rate=0.8,
+    mutation_rate=0.1
+):
+    # Step 1: Initialize population
+    population = generate_population(population_size, lower_bound, upper_bound)
+
+    for generation in range(generations):
+        # Step 2: Evaluate fitness
+        fitness_values = [fitness_function(ind) for ind in population]
+        
+        # Log current generation's best individual
+        best_individual = max(population, key=fitness_function)
+        best_fitness = fitness_function(best_individual)
+        print(f"Generation {generation + 1}: Best fitness = {best_fitness}, Best individual = {best_individual}")
+        
+        # Step 3: Create a new population
+        new_population = []
+        for _ in range(population_size):
+            # Select parents
+            parent1 = select_parents(population, fitness_values)
+            parent2 = select_parents(population, fitness_values)
+            
+            # Perform crossover
+            offspring = crossover(parent1, parent2, crossover_rate)
+            
+            # Perform mutation
+            offspring = mutate(offspring, mutation_rate, lower_bound, upper_bound)
+            
+            new_population.append(offspring)
+        
+        population = new_population
+
+    # Step 4: Return the best solution
+    best_individual = max(population, key=fitness_function)
+    return best_individual, fitness_function(best_individual)
+
+# Run the Genetic Algorithm
+if __name__ == "__main__":
+    best_solution, best_value = genetic_algorithm()
+    print(f"Best solution: {best_solution}, Best value: {best_value}")
